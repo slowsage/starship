@@ -572,6 +572,7 @@ impl DirContents {
             };
             match msg {
                 Ok(entry) => {
+                    let entry_start = Instant::now();
                     let path = PathBuf::from(entry.path().strip_prefix(base_path).unwrap());
 
                     let is_dir = match follow_symlinks {
@@ -580,6 +581,16 @@ impl DirContents {
                             .map(|m| m.is_dir())
                             .unwrap_or(false),
                     };
+
+                    let entry_elapsed = entry_start.elapsed();
+                    if entry_elapsed.as_millis() > 1 {
+                        log::warn!(
+                            "Slow entry in {}: {:?} took {:?}",
+                            base_path.display(),
+                            path,
+                            entry_elapsed
+                        );
+                    }
 
                     if is_dir {
                         folders.insert(path);
